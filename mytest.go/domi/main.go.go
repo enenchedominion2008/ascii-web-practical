@@ -41,3 +41,5 @@ func main(){
 	result := ascii(text, "standard.txt")
 fmt.Print(result)
 }
+
+
