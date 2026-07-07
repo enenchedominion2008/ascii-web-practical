@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func ascii(text string, bannar string) string {
+func ascii(text string, bannar string,substring string,ansiCode string) string {
 	data, err := os.ReadFile(bannar)
 	if err != nil {
 
@@ -37,9 +37,11 @@ func ascii(text string, bannar string) string {
 		}
 		for row := 0; row < 8; row++ {
 			for _, char := range j {
-			
-				final.WriteString(font[char][row])
-				
+				if strings.Contains(substring,string(char)) {
+					final.WriteString(ansiCode+font[char][row]+"\033[0m")
+				} else {
+					final.WriteString(font[char][row])
+				}
 			}
 			
 			final.WriteString("\n")

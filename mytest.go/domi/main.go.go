@@ -17,11 +17,13 @@ func main(){
 		return
 	}
 	colorName := strings.TrimPrefix(os.Args[1],"--color=")
-	substring := os.Args[2] 
+	substring := os.Args[2]
 	text := os.Args[3]
-	fmt.Println("color:",colorName)
-	fmt.Println("substring:",substring)
-	fmt.Println("text:",text)
+	banner := "standard.txt"
+	   if len(os.Args) == 5 {
+		banner = os.Args[4] + ".txt"
+	   }
+	
 	color := map[string]string{
 		"red" : "\033[31m",
 		"green" : "\033[32m",
@@ -37,8 +39,7 @@ func main(){
 		fmt.Println("error: color \""+colorName+"\"is not surported")
 		return
 	}
-	fmt.Println("ANSI code:",ansiCode)
-	result := ascii(text, "standard.txt")
+	result := ascii(text, banner, substring, ansiCode)
 fmt.Print(result)
 }
 
