@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hand Interactive 3D Particles</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #050505;
+            font-family: 'Inter', sans-serif;
+            color: #ffffff;
+            user-select: none;
+        }
+
+        #canvas-container {
+            width: 100vw;
+            height: 100vh;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+
+        /* Glassmorphism UI Panel */
+        #ui-panel {
+            position: absolute;
+            top: 30px;
+            right: 30px;
+            z-index: 10;
+            background: rgba(20, 20, 25, 0.6);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 24px;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            width: 260px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            text-align: center;
+            background: linear-gradient(135deg, #fff, #aaa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .control-group label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            margin-bottom: -4px;
+        }
+
+        .btn-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+        }
+
+        button {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #ddd;
+            padding: 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            font-size: 0.85rem;
+            font-family: inherit;
+        }
+
+        button:hover {
+            background: rgba(255, 255, 255, 0.15);
+            color: #fff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        button.active {
+            background: rgba(0, 200, 255, 0.2);
+            border-color: rgba(0, 200, 255, 0.5);
+            color: #fff;
+            box-shadow: 0 0 15px rgba(0, 200, 255, 0.2);
+        }
+
+        button.full-width {
+            grid-column: span 2;
+        }
+
+        /* Color Picker Customization */
+        .color-picker-wrapper {
+            position: relative;
+            width: 100%;
+            height: 44px;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: border-color 0.3s;
+        }
+        
+        .color-picker-wrapper:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        input[type="color"] {
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            width: calc(100% + 20px);
+            height: calc(100% + 20px);
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            background: none;
+        }
+
+        /* Status indicator */
+        #status {
+            position: absolute;
+            bottom: 30px;
+            left: 30px;
+            z-index: 10;
+            background: rgba(20, 20, 25, 0.6);
+            padding: 12px 20px;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .status-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #ff4757;
+            transition: all 0.5s;
+            box-shadow: 0 0 10px rgba(255, 71, 87, 0.5);
+        }
+
+        .status-dot.tracking {
+            background-color: #2ed573;
+            box-shadow: 0 0 15px rgba(46, 213, 115, 0.6);
+        }
+
+        /* Video element for mediapipe */
+        video.input_video {
+            display: none;
+        }
+
+        /* Centered attribution at the bottom */
+        #attribution {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 10;
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.6);
+            background: rgba(20, 20, 25, 0.6);
+            padding: 8px 16px;
+            border-radius: 20px;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            pointer-events: auto;
+            letter-spacing: 0.5px;
+        }
+
+        #attribution a {
+            color: #00d2ff;
+            text-decoration: none;
+            font-weight: 600;
+            transition: color 0.3s ease;
+        }
+
+        #attribution a:hover {
+            color: #ffffff;
+        }
+    </style>
+
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    
+    <!-- MediaPipe Hands -->
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+    <div id="canvas-container"></div>
+    
+    <div id="ui-panel">
+        <h1>Particle System</h1>
+        
+        <div class="control-group">
+            <label>Shape Template</label>
+            <div class="btn-grid">
+                <button id="btn-fireworks" class="active full-width">Fireworks</button>
+                <button id="btn-hearts">Hearts</button>
+                <button id="btn-flowers">Flowers</button>
+                <button id="btn-saturn">Saturn</button>
+                <button id="btn-buddha">Buddha</button>
+            </div>
+        </div>
+        
+        <div class="control-group">
+            <label>Particle Color</label>
+            <div class="color-picker-wrapper">
+                <input type="color" id="color-picker" value="#00d2ff">
+            </div>
+        </div>
+    </div>
+
+    <div id="status">
+        <div class="status-dot" id="status-indicator"></div>
+        <span id="status-text">Starting camera...</span>
+    </div>
+
+    <div id="attribution">
+        Created by <a href="https://github.com/OmellMwanza" target="_blank" rel="noopener noreferrer">Omell</a>
+    </div>
+
+    <video class="input_video"></video>
+
+    <script>
+        // --- 1. SET UP THREE.JS SCENE ---
+        const container = document.getElementById('canvas-container');
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x050505, 0.002);
+
+        const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 1, 2000);
+        camera.position.z = 250;
+        camera.position.y = 50;
+
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2)); // optimize performance
+        container.appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        controls.dampingFactor = 0.05;
+        controls.autoRotate = true;
+        controls.autoRotateSpeed = 0.5;
+        controls.enablePan = false;
+
+        // --- 2. PARTICLE SYSTEM ---
+        const PARTICLE_COUNT = 15000;
+        const particles = new THREE.BufferGeometry();
+        
+        const positions = new Float32Array(PARTICLE_COUNT * 3);
+        const targetPositions = new Float32Array(PARTICLE_COUNT * 3);
+        const originalTargetPositions = new Float32Array(PARTICLE_COUNT * 3);
+        const randomOffsets = new Float32Array(PARTICLE_COUNT * 3);
+        const speeds = new Float32Array(PARTICLE_COUNT);
+
+        // Initialize particles scattered randomly
+        for (let i = 0; i < PARTICLE_COUNT; i++) {
+            const idx = i * 3;
+            positions[idx] = (Math.random() - 0.5) * 400;
+            positions[idx+1] = (Math.random() - 0.5) * 400;
+            positions[idx+2] = (Math.random() - 0.5) * 400;
+            
+            targetPositions[idx] = positions[idx];
+            targetPositions[idx+1] = positions[idx+1];
+            targetPositions[idx+2] = positions[idx+2];
+            
+            originalTargetPositions[idx] = positions[idx];
+            originalTargetPositions[idx+1] = positions[idx+1];
+            originalTargetPositions[idx+2] = positions[idx+2];
+            
+            randomOffsets[idx] = (Math.random() - 0.5) * 4;
+            randomOffsets[idx+1] = (Math.random() - 0.5) * 4;
+            randomOffsets[idx+2] = (Math.random() - 0.5) * 4;
+            
+            speeds[i] = 0.02 + Math.random() * 0.06; // Random interpolation speed per particle
+        }
+
+        particles.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+        // Create a smooth glowing circular texture programmatically
+        const canvas = document.createElement('canvas');
+        canvas.width = 64;
+        canvas.height = 64;
+        const ctx = canvas.getContext('2d');
+        const gradient = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+        gradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+        gradient.addColorStop(0.2, 'rgba(255, 255, 255, 0.8)');
+        gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.2)');
+        gradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, 64, 64);
+        const texture = new THREE.CanvasTexture(canvas);
+
+        const material = new THREE.PointsMaterial({
+            size: 2.5,
+            color: 0x00d2ff,
+            map: texture,
+            transparent: true,
+            opacity: 0.8,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+
+        const particleSystem = new THREE.Points(particles, material);
+        scene.add(particleSystem);
+
+        // --- 3. SHAPE GENERATORS ---
+        // Generates target positions for different shapes
+        const shapes = {
+            fireworks: () => {
+                const lines = 100;
+                const pointsPerLine = PARTICLE_COUNT / lines;
+                for (let i = 0; i < PARTICLE_COUNT; i++) {
+                    const idx = i * 3;
+                    const lineIdx = Math.floor(i / pointsPerLine);
+                    const pointIdx = i % pointsPerLine;
+                    
+                    // Golden ratio distribution for lines
+                    const phi = Math.acos(1 - 2 * (lineIdx + 0.5) / lines);
+                    const theta = Math.PI * (1 + Math.sqrt(5)) * lineIdx;
+                    
+                    const r = (pointIdx / pointsPerLine) * 120 + Math.random() * 5;
+                    
+                    originalTargetPositions[idx] = r * Math.sin(phi) * Math.cos(theta);
+                    originalTargetPositions[idx + 1] = r * Math.cos(phi);
+                    originalTargetPositions[idx + 2] = r * Math.sin(phi) * Math.sin(theta);
+                }
+            },
+            hearts: () => {
+                for (let i = 0; i < PARTICLE_COUNT; i++) {
+                    const idx = i * 3;
+                    const t = Math.random() * Math.PI * 2;
+                    
+                    // 3D Heart formula
+                    const x = 16 * Math.pow(Math.sin(t), 3);
+                    const y = 13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t);
+                    const z = (Math.random() - 0.5) * 15; // Extrude into 3D
+                    
+                    const scale = 4.5;
+                    // Add thickness and scatter based on distance to core
+                    const scatter = (Math.random() * Math.random()) * 20 - 10;
+                    
+                    originalTargetPositions[idx] = x * scale + scatter;
+                    originalTargetPositions[idx + 1] = y * scale + scatter;
+                    originalTargetPositions[idx + 2] = z + scatter;
+                }
+            },
+            flowers: () => {
+                for (let i = 0; i < PARTICLE_COUNT; i++) {
+                    const idx = i * 3;
+                    const theta = Math.random() * Math.PI * 2;
+                    const petals = 7;
+                    const rBase = Math.random() * 60; // Spread from center
+                    
+                    // Flower petal formula
+                    const petalOffset = 30 * Math.sin(petals * theta);
+                    const r = rBase + petalOffset;
+                    
+                    // Curl edges upward in Z axis
+                    const z = 15 * Math.sin(petals * theta) + (Math.random() - 0.5) * 10;
+                    
+                    originalTargetPositions[idx] = r * Math.cos(theta);
+                    originalTargetPositions[idx + 1] = z; // Use Y in standard terms as Z for flat flower laying down
+                    originalTargetPositions[idx + 2] = r * Math.sin(theta);
+                }
+            },
+            saturn: () => {
+                const planetParticles = Math.floor(PARTICLE_COUNT * 0.35);
+                const ringParticles = PARTICLE_COUNT - planetParticles;
+                
+                // Sphere for planet
+                for (let i = 0; i < planetParticles; i++) {
+                    const idx = i * 3;
+                    const r = 40 + (Math.random() - 0.5) * 2;
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    
+                    originalTargetPositions[idx] = r * Math.sin(phi) * Math.cos(theta);
+                    originalTargetPositions[idx + 1] = r * Math.cos(phi);
+                    originalTargetPositions[idx + 2] = r * Math.sin(phi) * Math.sin(theta);
+                }
+                
+                // Rings
+                for (let i = 0; i < ringParticles; i++) {
+                    const idx = (planetParticles + i) * 3;
+                    
+                    // Distribute rings with gaps
+                    let r;
+                    const rand = Math.random();
+                    if(rand < 0.4) r = 55 + Math.random() * 15; // Inner ring
+                    else if(rand < 0.8) r = 75 + Math.random() * 25; // Middle ring
+                    else r = 105 + Math.random() * 15; // Outer thin ring
+                    
+                    const theta = Math.random() * Math.PI * 2;
+                    
+                    const x = r * Math.cos(theta);
+                    const z = r * Math.sin(theta);
+                    const y = (Math.random() - 0.5) * 3; // Thickness of ring
+                    
+                    // Tilt the ring
+                    const tilt = 0.5; // Radians
+                    originalTargetPositions[idx] = x;
+                    originalTargetPositions[idx + 1] = y * Math.cos(tilt) - z * Math.sin(tilt);
+                    originalTargetPositions[idx + 2] = y * Math.sin(tilt) + z * Math.cos(tilt);
+                }
+            },
+            buddha: () => {
+                // Approximate seated figure (Buddha silhouette) using overlapping volumes
+                for (let i = 0; i < PARTICLE_COUNT; i++) {
+                    const idx = i * 3;
+                    const rand = Math.random();
+                    
+                    let cx, cy, cz, rx, ry, rz;
+                    
+                    if (rand < 0.12) { // Head
+                        cx = 0; cy = 60; cz = 0;
+                        rx = 18; ry = 22; rz = 20;
+                    } else if (rand < 0.2) { // Shoulders/Neck
+                        cx = 0; cy = 40; cz = 0;
+                        rx = 35; ry = 15; rz = 20;
+                    } else if (rand < 0.6) { // Torso
+                        cx = 0; cy = 10; cz = 5;
+                        rx = 30; ry = 40; rz = 25;
+                    } else if (rand < 0.8) { // Crossed legs base
+                        cx = 0; cy = -30; cz = 15;
+                        rx = 55; ry = 15; rz = 35;
+                    } else { // Knees
+                        const side = (rand < 0.9) ? 1 : -1;
+                        cx = 40 * side; cy = -25; cz = 25;
+                        rx = 20; ry = 15; rz = 20;
+                    }
+                    
+                    const theta = Math.random() * Math.PI * 2;
+                    const phi = Math.acos(2 * Math.random() - 1);
+                    // Bias towards surface for hollow look or solid based on cbrt
+                    const dist = Math.cbrt(Math.random()); 
+                    
+                    originalTargetPositions[idx] = cx + dist * rx * Math.sin(phi) * Math.cos(theta);
+                    originalTargetPositions[idx + 1] = cy + dist * ry * Math.cos(phi);
+                    originalTargetPositions[idx + 2] = cz + dist * rz * Math.sin(phi) * Math.sin(theta);
+                }
+            }
+        };
+
+        let currentShape = 'fireworks';
+        shapes[currentShape]();
+        
+        // --- 4. UI INTERACTIONS ---
+        const buttons = document.querySelectorAll('.btn-grid button');
+        buttons.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                buttons.forEach(b => b.classList.remove('active'));
+                e.target.classList.add('active');
+                
+                const shapeName = e.target.id.replace('btn-', '');
+                if (shapes[shapeName]) {
+                    currentShape = shapeName;
+                    shapes[shapeName]();
+                    // Optional: reset rotation or add impulse
+                }
+            });
+        });
+
+        const colorPicker = document.getElementById('color-picker');
+        colorPicker.addEventListener('input', (e) => {
+            material.color.set(e.target.value);
+            // Add a brief glow effect
+            material.size = 3.5;
+            setTimeout(() => { material.size = 2.5; }, 200);
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // --- 5. HAND TRACKING USING MEDIAPIPE ---
+        const videoElement = document.getElementsByClassName('input_video')[0];
+        const statusIndicator = document.getElementById('status-indicator');
+        const statusText = document.getElementById('status-text');
+        
+        let targetTension = 0.5; // 0 = closed, 1 = open
+        let smoothedTension = 0.5;
+        let handsDetected = false;
+
+        function calculateTension(landmarks) {
+            // Landmarks: 0 is wrist
+            // 4: thumb tip, 8: index tip, 12: middle tip, 16: ring tip, 20: pinky tip
+            const wrist = landmarks[0];
+            const tips = [landmarks[4], landmarks[8], landmarks[12], landmarks[16], landmarks[20]];
+            
+            let totalDist = 0;
+            tips.forEach(tip => {
+                const dx = tip.x - wrist.x;
+                const dy = tip.y - wrist.y;
+                const dz = tip.z - wrist.z;
+                totalDist += Math.sqrt(dx*dx + dy*dy + dz*dz);
+            });
+            
+            return totalDist / 5; // Average distance
+        }
+
+        function onResults(results) {
+            if (results.multiHandLandmarks && results.multiHandLandmarks.length > 0) {
+                if (!handsDetected) {
+                    handsDetected = true;
+                    statusIndicator.classList.add('tracking');
+                    statusText.textContent = "Hands tracked. Try opening/closing hands.";
+                }
+                
+                let combinedTension = 0;
+                for (const landmarks of results.multiHandLandmarks) {
+                    combinedTension += calculateTension(landmarks);
+                }
+                combinedTension /= results.multiHandLandmarks.length;
+                
+                // Map raw tension to 0-1 range. 
+                // Typically: closed hand ~0.15, fully open hand ~0.45
+                const minTension = 0.15;
+                const maxTension = 0.45;
+                targetTension = Math.max(0, Math.min(1, (combinedTension - minTension) / (maxTension - minTension)));
+                
+            } else {
+                if (handsDetected) {
+                    handsDetected = false;
+                    statusIndicator.classList.remove('tracking');
+                    statusText.textContent = "Show your hands to the camera";
+                }
+                // When hands are lost, gently return to neutral (0.5)
+                targetTension = 0.5; 
+            }
+        }
+
+        const hands = new Hands({locateFile: (file) => {
+            return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
+        }});
+        
+        hands.setOptions({
+            maxNumHands: 2,
+            modelComplexity: 1,
+            minDetectionConfidence: 0.6,
+            minTrackingConfidence: 0.6
+        });
+        
+        hands.onResults(onResults);
+
+        const camera_utils = new Camera(videoElement, {
+            onFrame: async () => {
+                await hands.send({image: videoElement});
+            },
+            width: 640,
+            height: 480
+        });
+        
+        camera_utils.start()
+            .then(() => {
+                statusText.textContent = "Show your hands to the camera";
+            })
+            .catch(err => {
+                console.error("Camera error:", err);
+                statusText.textContent = "Camera access denied or failed.";
+                statusIndicator.style.backgroundColor = "#ff9f43"; // Warning color
+            });
+
+        // --- 6. RENDER LOOP ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const time = clock.getElapsedTime();
+            
+            // Smoothly interpolate tension
+            smoothedTension += (targetTension - smoothedTension) * 0.15;
+            
+            // Map smoothed tension to visual properties
+            // Tension 0 = closed hands = contracted, Tension 1 = open hands = expanded
+            // Base scale 0.5 -> 1.5
+            const systemScale = 0.4 + (smoothedTension * 1.2);
+            particleSystem.scale.set(systemScale, systemScale, systemScale);
+            
+            // Expansion multiplier for individual particles
+            const expansionFactor = 0.6 + smoothedTension * 0.8; 
+
+            // Update individual particle positions towards targets
+            const positionsAttribute = particleSystem.geometry.attributes.position;
+            const currentArray = positionsAttribute.array;
+            
+            for (let i = 0; i < PARTICLE_COUNT; i++) {
+                const idx = i * 3;
+                
+                // Add fluid organic motion using sine waves and random offsets
+                const waveX = Math.sin(time * 0.5 + randomOffsets[idx]) * 3;
+                const waveY = Math.cos(time * 0.6 + randomOffsets[idx+1]) * 3;
+                const waveZ = Math.sin(time * 0.4 + randomOffsets[idx+2]) * 3;
+                
+                // Determine target position based on shape + expansion + wave
+                const tx = originalTargetPositions[idx] * expansionFactor + waveX;
+                const ty = originalTargetPositions[idx+1] * expansionFactor + waveY;
+                const tz = originalTargetPositions[idx+2] * expansionFactor + waveZ;
+                
+                targetPositions[idx] = tx;
+                targetPositions[idx+1] = ty;
+                targetPositions[idx+2] = tz;
+                
+                // Interpolate current position to target
+                const speed = speeds[i];
+                currentArray[idx] += (targetPositions[idx] - currentArray[idx]) * speed;
+                currentArray[idx+1] += (targetPositions[idx+1] - currentArray[idx+1]) * speed;
+                currentArray[idx+2] += (targetPositions[idx+2] - currentArray[idx+2]) * speed;
+            }
+            
+            positionsAttribute.needsUpdate = true;
+            
+            // Add slight gentle rotation based on tension as well
+            controls.autoRotateSpeed = 0.5 + (smoothedTension * 2.0);
+            controls.update();
+
+            renderer.render(scene, camera);
+        }
+
+        animate();
+    </script>
+</body>
+</html>

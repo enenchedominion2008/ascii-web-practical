@@ -1,0 +1,435 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dominion Tech Institute</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#060f1f;
+    --bg-alt:#0a1830;
+    --surface:rgba(255,255,255,0.035);
+    --surface-hover:rgba(255,255,255,0.06);
+    --line:rgba(255,255,255,0.09);
+    --accent:#3b82f6;
+    --accent-bright:#7dabfb;
+    --accent-deep:#1d4ed8;
+    --text-main:#eef3fb;
+    --text-sub:#8fa2bf;
+    --text-dim:#5b6c85;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    background:var(--bg);
+    color:var(--text-main);
+    font-family:'Inter',sans-serif;
+    overflow-x:hidden;
+  }
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;letter-spacing:-0.02em;}
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.78rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--accent-bright);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .eyebrow::before{
+    content:'';
+    width:18px;height:1px;
+    background:var(--accent);
+  }
+
+  /* ---------- Background pipeline (signature element) ---------- */
+  .pipeline{
+    position:fixed;
+    left:40px;
+    top:0;
+    bottom:0;
+    width:2px;
+    background:linear-gradient(180deg, transparent, var(--line) 8%, var(--line) 92%, transparent);
+    z-index:1;
+  }
+  .pipeline-fill{
+    position:absolute;
+    left:0;top:0;
+    width:100%;
+    height:0%;
+    background:linear-gradient(180deg, var(--accent), var(--accent-bright));
+    box-shadow:0 0 12px var(--accent);
+    transition:height 0.15s linear;
+  }
+  @media (max-width:900px){ .pipeline{display:none;} }
+
+  section{
+    position:relative;
+    z-index:2;
+    max-width:920px;
+    margin:0 auto;
+    padding:140px 32px;
+  }
+  @media (max-width:900px){ section{padding:100px 24px;} }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    min-height:100vh;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    padding-top:0;padding-bottom:0;
+  }
+  .hero .eyebrow{margin-bottom:10px;}
+  .brand-name{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:700;
+    font-size:clamp(1.6rem, 3.4vw, 2.3rem);
+    letter-spacing:0.01em;
+    color:var(--text-main);
+    margin-bottom:26px;
+    background:linear-gradient(90deg, var(--text-main) 40%, var(--accent-bright));
+    -webkit-background-clip:text;
+    background-clip:text;
+    -webkit-text-fill-color:transparent;
+  }
+  .hero h1{
+    font-size:clamp(2.6rem, 6vw, 4.6rem);
+    font-weight:700;
+    line-height:1.05;
+    margin-bottom:24px;
+  }
+  .hero h1 span{
+    color:var(--accent-bright);
+  }
+  .hero p{
+    font-size:1.15rem;
+    color:var(--text-sub);
+    max-width:520px;
+    line-height:1.6;
+    margin-bottom:40px;
+  }
+  .hero-actions{display:flex;gap:16px;flex-wrap:wrap;}
+  .btn{
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:0.95rem;
+    padding:15px 30px;
+    border-radius:8px;
+    cursor:pointer;
+    border:1px solid transparent;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    transition:all 0.3s cubic-bezier(0.4,0,0.2,1);
+  }
+  .btn-primary{
+    background:var(--accent);
+    color:#04101f;
+    box-shadow:0 8px 24px rgba(59,130,246,0.28);
+  }
+  .btn-primary:hover{
+    background:var(--accent-bright);
+    transform:translateY(-2px);
+    box-shadow:0 12px 30px rgba(59,130,246,0.4);
+  }
+  .btn-ghost{
+    border-color:var(--line);
+    color:var(--text-main);
+  }
+  .btn-ghost:hover{
+    border-color:var(--accent);
+    background:var(--surface-hover);
+  }
+  .scroll-cue{
+    position:absolute;
+    bottom:48px;
+    left:32px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.75rem;
+    color:var(--text-dim);
+    display:flex;
+    align-items:center;
+    gap:10px;
+  }
+  .scroll-cue .bar{
+    width:1px;height:34px;
+    background:var(--text-dim);
+    position:relative;
+    overflow:hidden;
+  }
+  .scroll-cue .bar::after{
+    content:'';
+    position:absolute;
+    top:-100%;left:0;
+    width:100%;height:100%;
+    background:var(--accent-bright);
+    animation:cue 1.8s ease-in-out infinite;
+  }
+  @keyframes cue{ 50%{top:100%;} 100%{top:100%;} }
+
+  /* ---------- Reveal ---------- */
+  .reveal{
+    opacity:0;
+    transform:translateY(24px);
+    transition:opacity 0.7s ease, transform 0.7s cubic-bezier(0.16,1,0.3,1);
+  }
+  .reveal.is-visible{opacity:1;transform:translateY(0);}
+
+  /* ---------- Section heads ---------- */
+  .section-head{margin-bottom:56px;}
+  .section-head h2{
+    font-size:clamp(1.9rem,3.4vw,2.6rem);
+    font-weight:600;
+    margin-top:14px;
+  }
+
+  /* ---------- Standards ---------- */
+  .standards-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:1px;
+    background:var(--line);
+    border:1px solid var(--line);
+    border-radius:14px;
+    overflow:hidden;
+  }
+  @media (max-width:640px){ .standards-grid{grid-template-columns:1fr;} }
+  .standard-card{
+    background:var(--bg-alt);
+    padding:34px 30px;
+    transition:background 0.3s ease;
+  }
+  .standard-card:hover{background:var(--surface-hover);}
+  .standard-card .tag{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.72rem;
+    color:var(--accent-bright);
+    letter-spacing:0.08em;
+  }
+  .standard-card h3{
+    font-size:1.25rem;
+    font-weight:600;
+    margin:10px 0 10px;
+  }
+  .standard-card p{
+    color:var(--text-sub);
+    font-size:0.96rem;
+    line-height:1.6;
+  }
+
+  /* ---------- What we do ---------- */
+  .offer-row{
+    display:flex;
+    gap:28px;
+    padding:30px 0;
+    border-top:1px solid var(--line);
+    align-items:baseline;
+    flex-wrap:wrap;
+  }
+  .offer-row:last-child{border-bottom:1px solid var(--line);}
+  .offer-row .idx{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--text-dim);
+    font-size:0.85rem;
+    min-width:34px;
+  }
+  .offer-row h3{
+    font-size:1.35rem;
+    font-weight:600;
+    flex:0 0 220px;
+  }
+  .offer-row p{
+    color:var(--text-sub);
+    line-height:1.65;
+    flex:1;
+    min-width:240px;
+  }
+
+  /* ---------- Stats strip ---------- */
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(3,1fr);
+    gap:24px;
+    text-align:center;
+  }
+  @media (max-width:640px){ .stats{grid-template-columns:1fr;} }
+  .stat h3{
+    font-size:2.4rem;
+    color:var(--accent-bright);
+    font-weight:700;
+  }
+  .stat p{
+    color:var(--text-sub);
+    font-size:0.9rem;
+    margin-top:6px;
+  }
+
+  /* ---------- Connect ---------- */
+  .connect{
+    text-align:center;
+    padding-bottom:200px;
+  }
+  .connect h2{
+    font-size:clamp(2rem,4vw,3rem);
+    margin:16px 0 18px;
+  }
+  .connect p{
+    color:var(--text-sub);
+    max-width:480px;
+    margin:0 auto 36px;
+    line-height:1.6;
+  }
+  .fb-btn{
+    background:linear-gradient(135deg, var(--accent), var(--accent-deep));
+    color:#fff;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:1.05rem;
+    padding:18px 40px;
+    border-radius:50px;
+    text-decoration:none;
+    display:inline-flex;
+    align-items:center;
+    gap:12px;
+    box-shadow:0 10px 30px rgba(59,130,246,0.32);
+    transition:all 0.35s cubic-bezier(0.175,0.885,0.32,1.275);
+  }
+  .fb-btn:hover{
+    transform:translateY(-3px) scale(1.03);
+    box-shadow:0 16px 38px rgba(59,130,246,0.45);
+  }
+
+  footer{
+    text-align:center;
+    padding:32px;
+    color:var(--text-dim);
+    font-size:0.82rem;
+    font-family:'JetBrains Mono',monospace;
+    border-top:1px solid var(--line);
+    position:relative;
+    z-index:2;
+  }
+</style>
+</head>
+<body>
+
+  <div class="pipeline"><div class="pipeline-fill" id="pipelineFill"></div></div>
+
+  <section class="hero">
+    <div class="eyebrow">Welcome to</div>
+    <div class="brand-name">DOMINION TECH INSTITUTE</div>
+    <h1>We train people to <span>build</span>, then help them ship it.</h1>
+    <p>Online courses, hands-on application development, and tech training built around one idea: you learn fastest by shipping real software.</p>
+    <div class="hero-actions">
+      <a href="#standards" class="btn btn-primary">See how we teach</a>
+      <a href="#connect" class="btn btn-ghost">Get in touch</a>
+    </div>
+    <div class="scroll-cue"><div class="bar"></div>SCROLL</div>
+  </section>
+
+  <section id="standards">
+    <div class="section-head reveal">
+      <div class="eyebrow">Our standard</div>
+      <h2>How we build people</h2>
+    </div>
+    <div class="standards-grid reveal">
+      <div class="standard-card">
+        <div class="tag">01 · PRACTICAL FIRST</div>
+        <h3>Real projects, not just theory</h3>
+        <p>Every course is built around something you actually ship, not slides you forget. You leave with working code, not just notes.</p>
+      </div>
+      <div class="standard-card">
+        <div class="tag">02 · MENTORSHIP</div>
+        <h3>Guided, not left alone</h3>
+        <p>Instructors who've built and shipped software themselves review your work, unblock you, and push you toward better habits.</p>
+      </div>
+      <div class="standard-card">
+        <div class="tag">03 · INDUSTRY READY</div>
+        <h3>Trained for the job, not the exam</h3>
+        <p>Curriculum shaped by what teams actually use day to day, so what you learn here is what you'll be doing after.</p>
+      </div>
+      <div class="standard-card">
+        <div class="tag">04 · HONEST PACE</div>
+        <h3>No shortcuts, no fluff</h3>
+        <p>We'd rather you understand one thing properly than skim ten. Depth over speed, every time.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="offer">
+    <div class="section-head reveal">
+      <div class="eyebrow">What we do</div>
+      <h2>Three things, done properly</h2>
+    </div>
+    <div class="reveal">
+      <div class="offer-row">
+        <span class="idx">A</span>
+        <h3>Online courses</h3>
+        <p>Structured, self-paced programs covering programming fundamentals through advanced application development — built for people learning around a job or school schedule.</p>
+      </div>
+      <div class="offer-row">
+        <span class="idx">B</span>
+        <h3>Application development</h3>
+        <p>We design and build software for businesses and individuals — web apps, tools, and custom systems, built and delivered by our own team.</p>
+      </div>
+      <div class="offer-row">
+        <span class="idx">C</span>
+        <h3>Tech training</h3>
+        <p>Specialised, hands-on training for individuals and teams looking to move into tech or sharpen skills they already have.</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="stats">
+    <div class="stats reveal">
+      <div class="stat"><h3>100%</h3><p>Project-based learning</p></div>
+      <div class="stat"><h3>1:1</h3><p>Mentor feedback on your work</p></div>
+      <div class="stat"><h3>3</h3><p>Core service tracks</p></div>
+    </div>
+  </section>
+
+  <section id="connect" class="connect">
+    <div class="eyebrow" style="justify-content:center;">Stay connected</div>
+    <h2 class="reveal">Follow along, ask questions,<br>see what we're building.</h2>
+    <p class="reveal">We post course updates, project showcases, and training openings on Facebook first.</p>
+    <a href="https://www.facebook.com/enenche.dominion" target="_blank" rel="noopener" class="fb-btn reveal">
+      Visit our Facebook page →
+    </a>
+    <div class="reveal" style="margin-top:22px;">
+      <a href="signup.html" class="btn btn-primary" style="padding:16px 36px;">Sign up for a course</a>
+    </div>
+  </section>
+
+  <footer>DOMINION TECH INSTITUTE — LEARN. BUILD. SHIP.</footer>
+
+<script>
+  // Scroll-driven pipeline fill
+  const fill = document.getElementById('pipelineFill');
+  function updatePipeline(){
+    const scrollTop = window.scrollY;
+    const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+    const pct = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+    fill.style.height = pct + '%';
+  }
+  window.addEventListener('scroll', updatePipeline);
+  updatePipeline();
+
+  // Reveal on scroll
+  const observer = new IntersectionObserver((entries)=>{
+    entries.forEach(entry=>{
+      if(entry.isIntersecting){
+        entry.target.classList.add('is-visible');
+      }
+    });
+  }, { threshold: 0.15 });
+  document.querySelectorAll('.reveal').forEach(el=>observer.observe(el));
+</script>
+
+</body>
+</html>

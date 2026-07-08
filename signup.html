@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign Up — Dominion Tech Institute</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#050b1f;
+    --bg-alt:#0a1830;
+    --line:rgba(255,255,255,0.15);
+    --accent:#3b82f6;
+    --accent-bright:#7dabfb;
+    --text-main:#eef3fb;
+    --text-sub:#8fa2bf;
+  }
+
+  *{margin:0;padding:0;box-sizing:border-box;}
+
+  body{
+    background: #050b1f;
+    color:var(--text-main);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 20px;
+    position:relative;
+    overflow:hidden;
+  }
+
+  /* Very Visible Tech Building */
+  .tech-building-bg {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: 
+      linear-gradient(rgba(5,11,31,0.55), rgba(5,11,31,0.65)),
+      url('https://picsum.photos/id/1015/2000/1200') center/cover no-repeat;
+    z-index: -2;
+    filter: brightness(0.95) contrast(1.1) saturate(1.05);
+  }
+
+  .overlay {
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 40% 30%, rgba(59,130,246,0.18), transparent 70%);
+    z-index: -1;
+  }
+
+  .card{
+    background: rgba(10,24,48,0.92);
+    border:1px solid var(--line);
+    border-radius:20px;
+    padding:48px 44px;
+    max-width:480px;
+    width:100%;
+    box-shadow:0 30px 70px rgba(0,0,0,0.7);
+    backdrop-filter: blur(16px);
+    position: relative;
+    z-index: 2;
+  }
+
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.78rem;
+    letter-spacing:0.12em;
+    text-transform:uppercase;
+    color:var(--accent-bright);
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:16px;
+  }
+  .eyebrow::before{content:'';width:20px;height:1px;background:var(--accent);}
+
+  .card h1{
+    font-family:'Space Grotesk',sans-serif;
+    font-size:2.05rem;
+    font-weight:700;
+    margin-bottom:12px;
+  }
+
+  .card p.sub{
+    color:var(--text-sub);
+    font-size:1rem;
+    margin-bottom:32px;
+    line-height:1.6;
+  }
+
+  .field{margin-bottom:22px;}
+  .field label{
+    display:block;
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.76rem;
+    letter-spacing:0.08em;
+    text-transform:uppercase;
+    color:var(--text-sub);
+    margin-bottom:8px;
+  }
+
+  .field input{
+    width:100%;
+    background:rgba(255,255,255,0.06);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:15px 16px;
+    font-size:1rem;
+    color:var(--text-main);
+    outline:none;
+    transition:all 0.3s ease;
+  }
+  .field input:focus{
+    border-color:var(--accent);
+    background:rgba(59,130,246,0.12);
+    box-shadow:0 0 0 4px rgba(59,130,246,0.18);
+  }
+
+  .row-2{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:18px;
+  }
+
+  .btn-submit{
+    width:100%;
+    margin-top:12px;
+    background:linear-gradient(90deg, #3b82f6, #60a5fa);
+    color:#04101f;
+    border:none;
+    font-family:'Space Grotesk',sans-serif;
+    font-weight:600;
+    font-size:1.08rem;
+    padding:16px;
+    border-radius:10px;
+    cursor:pointer;
+    box-shadow:0 10px 30px rgba(59,130,246,0.4);
+    transition:all 0.3s ease;
+  }
+  .btn-submit:hover{
+    transform:translateY(-3px);
+    box-shadow:0 15px 40px rgba(59,130,246,0.5);
+  }
+
+  .back-link{
+    display:block;
+    text-align:center;
+    margin-top:28px;
+    color:var(--text-sub);
+    font-family:'JetBrains Mono',monospace;
+    font-size:0.82rem;
+    text-decoration:none;
+  }
+  .back-link:hover{color:var(--accent-bright);}
+</style>
+</head>
+<body>
+
+  <div class="tech-building-bg"></div>
+  <div class="overlay"></div>
+
+  <div class="card">
+    <div class="eyebrow">DOMINION TECH INSTITUTE</div>
+    <h1>Create your account</h1>
+    <p class="sub">Join Nigeria’s premier tech institute and start your journey today.</p>
+
+    <form id="signupForm" action="dashboard.html" method="GET">
+      <div class="row-2">
+        <div class="field">
+          <label for="fname">First Name</label>
+          <input type="text" id="fname" name="name" placeholder="Alex" required>
+        </div>
+        <div class="field">
+          <label for="lname">Surname</label>
+          <input type="text" id="lname" name="surname" placeholder="Rivera" required>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="phone">Phone Number</label>
+        <input type="tel" id="phone" name="phone" placeholder="+234 801 234 5678" required>
+      </div>
+
+      <div class="field">
+        <label for="address">City / State</label>
+        <input type="text" id="address" name="address" placeholder="Lagos, Nigeria" required>
+      </div>
+
+      <button type="submit" class="btn-submit">Sign Up →</button>
+    </form>
+
+    <a href="dominion-tech-institute.html" class="back-link">← Back to Homepage</a>
+  </div>
+
+</body>
+</html>
